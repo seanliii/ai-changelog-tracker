@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Changelog Tracker — AI 产品更新日志</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0e1a;
+      --bg-card: #111827;
+      --bg-hover: #1a2332;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-glow: rgba(59,130,246,0.15);
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,14,26,0.8);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text h1 {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo-text p {
+      font-size: 12px; color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .stat-item { text-align: center; }
+    .stat-value {
+      font-size: 20px; font-weight: 700; color: var(--accent);
+    }
+    .stat-label {
+      font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      padding: 20px 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1; min-width: 280px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 16px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .filter-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .filter-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .view-btn {
+      padding: 8px 14px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .view-btn:hover { color: var(--text); }
+    .view-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+      padding-bottom: 40px;
+    }
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    .sidebar h3 {
+      font-size: 12px; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .vendor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+    .vendor-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    .vendor-item:hover { background: var(--bg-hover); }
+    .vendor-item.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+    .vendor-count {
+      font-size: 11px; color: var(--text-dim);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .vendor-item.active .vendor-count {
+      background: var(--accent);
+      color: white;
+    }
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag-chip {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg-hover);
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag-chip:hover { background: var(--accent); color: white; }
+    .tag-chip.active { background: var(--accent); color: white; }
+
+    .timeline {
+      position: relative;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .entry {
+      position: relative;
+      padding-left: 44px;
+      margin-bottom: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .entry-dot {
+      position: absolute;
+      left: 10px; top: 20px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      z-index: 2;
+    }
+    .entry-dot.new-feature { background: var(--green); }
+    .entry-dot.improvement { background: var(--accent); }
+    .entry-dot.bugfix { background: var(--amber); }
+    .entry-dot.security { background: var(--red); }
+    .entry-dot.announcement { background: var(--purple); }
+    .entry-dot.breaking { background: var(--cyan); }
+    .entry-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .entry-card:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+    .entry-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .entry-product {
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .product-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      background: var(--bg-hover);
+    }
+    .entry-version {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+    .entry-type {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .type-new-feature { background: rgba(16,185,129,0.15); color: var(--green); }
+    .type-improvement { background: rgba(59,130,246,0.15); color: var(--accent); }
+    .type-bugfix { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .type-security { background: rgba(239,68,68,0.15); color: var(--red); }
+    .type-announcement { background: rgba(139,92,246,0.15); color: var(--purple); }
+    .type-breaking { background: rgba(6,182,212,0.15); color: var(--cyan); }
+    .entry-date {
+      font-size: 12px; color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .entry-title {
+      font-size: 16px; font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .entry-desc {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .entry-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .entry-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: var(--bg-hover);
+      color: var(--text-dim);
+    }
+    .entry-detail {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .entry-detail.show { display: block; }
+    .detail-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .detail-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .detail-list li::before {
+      content: "•";
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .entry-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .action-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .card-item:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .card-item .entry-header {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-item .entry-meta {
+      justify-content: space-between;
+      width: 100%;
+    }
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .no-results h3 {
+      font-size: 18px; margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-icon">📋</div>
+          <div class="logo-text">
+            <h1>AI Changelog Tracker</h1>
+            <p>AI 产品更新日志 · 2026 实时追踪</p>
+          </div>
+        </div>
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total Updates</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-this-month">0</div>
+            <div class="stat-label">This Month</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-vendors">0</div>
+            <div class="stat-label">Vendors</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索产品、版本、功能..." />
+      </div>
+      <div class="filter-group" id="typeFilters">
+        <button class="filter-btn active" data-type="all">全部</button>
+        <button class="filter-btn" data-type="new-feature">🆕 新功能</button>
+        <button class="filter-btn" data-type="improvement">⚡ 改进</button>
+        <button class="filter-btn" data-type="breaking">🔧 Breaking</button>
+        <button class="filter-btn" data-type="announcement">📢 发布</button>
+        <button class="filter-btn" data-type="security">🔒 安全</button>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="timeline">时间线</button>
+        <button class="view-btn" data-view="cards">卡片</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <aside class="sidebar">
+        <h3>厂商</h3>
+        <div class="vendor-list" id="vendorList"></div>
+        <h3 style="margin-top:8px">热门标签</h3>
+        <div class="tag-cloud" id="tagCloud"></div>
+      </aside>
+
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>AI Changelog Tracker · 数据截至 2026-06-17 · 由 <a href="https://github.com/seanliii">🦐 小蓝虾</a> 维护</p>
+    </div>
+  </footer>
+
+  <script>
+    const changelogData = [
+      {
+        id: 1, product: "OpenClaw", vendor: "OpenClaw", version: "v2026.6.1",
+        date: "2026-06-10", type: "announcement",
+        title: "OpenClaw 发布 v2026.6.1，含 106 项更新",
+        desc: "核心功能包括技能工坊（Skill Workshop）——Agent 可自主生成新技能提案并提交人类审批，从被动等开发者升级为主动进化。",
+        details: ["技能工坊：Agent 自主生成技能提案", "106 项总更新，含多项 Bug 修复", "智能家居赛道新增全屋智能场景支持", "Workboard 多智能体协同编排增强"],
+        tags: ["OpenClaw", "Skill Workshop", "Multi-Agent", "智能家居"]
+      },
+      {
+        id: 2, product: "Xcode", vendor: "Apple", version: "27 Beta",
+        date: "2026-06-11", type: "new-feature",
+        title: "Xcode 27 Beta 原生集成 Gemini AI 编程助手",
+        desc: "苹果在 WWDC 26 上宣布 Xcode 27 将原生集成 Google Gemini，提供实时代码补全、Bug 诊断和自然语言编程功能。",
+        details: ["Gemini 直接集成至 Xcode 编辑器", "支持 Swift / Objective-C / C++ 实时代码补全", "自然语言描述直接生成代码片段", "Bug 诊断对话式交互"],
+        tags: ["Apple", "Xcode", "Gemini", "AI编程", "WWDC26"]
+      },
+      {
+        id: 3, product: "Claude", vendor: "Anthropic", version: "4.8",
+        date: "2026-06-14", type: "improvement",
+        title: "Claude 4.8 增强多 Agent 编排能力，新增 goal 命令",
+        desc: "Anthropic 发布 Claude 4.8，重点提升多 Agent 协同编排能力。新增 goal 命令让 Agent 可以设定长期目标并自主分解子任务。",
+        details: ["多 Agent 编排性能提升 40%", "goal 命令支持目标层级分解", "Claude Code Agent 视图优化", "MCP 插件市场 v2.3 同步上线"],
+        tags: ["Anthropic", "Claude", "Multi-Agent", "MCP"]
+      },
+      {
+        id: 4, product: "GPT", vendor: "OpenAI", version: "5.5",
+        date: "2026-06-08", type: "announcement",
+        title: "OpenAI 发布 GPT-5.5，与 Codex 深度融合",
+        desc: "GPT-5.5 是 OpenAI 最新旗舰模型，深度集成 Codex 代码引擎，支持超长上下文（200万 Token）和实时代码执行。",
+        details: ["200万 Token 上下文窗口", "Codex 引擎实时执行 Python/JS", "多模态输入支持视频理解", "API 定价维持 GPT-4o 水平"],
+        tags: ["OpenAI", "GPT", "Codex", "多模态"]
+      },
+      {
+        id: 5, product: "Gemini", vendor: "Google", version: "3.5 Pro",
+        date: "2026-06-03", type: "announcement",
+        title: "Google 发布 Gemini 3.5 Pro 与 2.5 Flash",
+        desc: "Gemini 3.5 Pro 在推理、数学和代码能力上全面超越前代。2.5 Flash 作为轻量版，速度提升 3 倍，成本降低 60%。",
+        details: ["Gemini 3.5 Pro MMLU 得分 92.1%", "2.5 Flash 速度提升 3x，成本降低 60%", "原生支持 Google Workspace 集成", "Vertex AI 企业级部署优化"],
+        tags: ["Google", "Gemini", "Vertex AI", "Workspace"]
+      },
+      {
+        id: 6, product: "微信小程序", vendor: "腾讯", version: "AI 流量主",
+        date: "2026-06-11", type: "new-feature",
+        title: "微信小程序 AI 流量主功能全面上线",
+        desc: "微信正式开放小程序 AI 流量主功能，开发者可通过接入 AI 对话服务获得广告分成，已有开发者月入 5000+。",
+        details: ["AI 对话服务接入即可获得流量主收益", "支持 GPT/Claude/国产模型自由切换", "官方提供 AI 对话模板一键部署", "《一人公司》2026 年度最佳案例"],
+        tags: ["微信", "小程序", "AI流量主", "一人公司", "变现"]
+      },
+      {
+        id: 7, product: "MAI-Thinking-1", vendor: "Microsoft", version: "Build 2026",
+        date: "2026-06-01", type: "announcement",
+        title: "微软 Build 2026 发布 MAI-Thinking-1 推理模型",
+        desc: "微软首个自研推理模型 MAI-Thinking-1 与 MAI-Code-1 编程模型同步发布，直接对标 OpenAI o 系列和 Claude 推理能力。",
+        details: ["MAI-Thinking-1：微软首个自研推理模型", "MAI-Code-1：编程专用模型，HumanEval 92.3%", "深度集成 Copilot Agent 工作流", "Azure OpenAI 服务同步上线"],
+        tags: ["Microsoft", "MAI", "Build2026", "Copilot", "推理模型"]
+      },
+      {
+        id: 8, product: "OpenHuman", vendor: "OpenHuman", version: "v2.0",
+        date: "2026-06-14", type: "new-feature",
+        title: "OpenHuman 开源 AI 助手发布 v2.0",
+        desc: "OpenHuman 是开源版 AI 助手框架，v2.0 新增本地模型支持、多 Agent 协作和插件市场，中文社区持续深度报道。",
+        details: ["支持本地 Llama/Qwen 模型离线运行", "多 Agent 协作框架内置", "插件市场含 50+ 官方插件", "社区活跃度进入 GitHub Trending 前 50"],
+        tags: ["OpenHuman", "开源", "Llama", "Qwen", "GitHub"]
+      },
+      {
+        id: 9, product: "Siri", vendor: "Apple", version: "iOS 27",
+        date: "2026-06-09", type: "improvement",
+        title: "Apple iOS 27 系统级 Siri AI Agent 能力升级",
+        desc: "iOS 27 将 Siri 升级为系统级 AI Agent，支持跨应用任务执行、屏幕内容理解和上下文记忆，开发者可自定义 Agent 行为。",
+        details: ["跨应用任务执行（如从邮件提取日程并导航）", "屏幕内容实时理解", "上下文记忆跨会话保持", "Apple Intelligence 端侧模型优化"],
+        tags: ["Apple", "Siri", "iOS27", "端侧AI", "Apple Intelligence"]
+      },
+      {
+        id: 10, product: "Claude Code", vendor: "Anthropic", version: "v2.3",
+        date: "2026-06-13", type: "new-feature",
+        title: "Claude Code MCP 插件市场 v2.3 上线",
+        desc: "Claude Code MCP（Model Context Protocol）插件市场更新至 v2.3，新增 30+ 官方插件，支持数据库、GitHub、Jira 等工具集成。",
+        details: ["30+ 新官方插件", "GitHub PR 自动审查", "Jira 工单自动生成", "Slack/Teams 消息同步", "MCP 协议成为行业标准"],
+        tags: ["Anthropic", "Claude Code", "MCP", "插件市场"]
+      },
+      {
+        id: 11, product: "Hermes", vendor: "美团", version: "Agent 小程序",
+        date: "2026-06-12", type: "new-feature",
+        title: "美团 Hermes Agent 小程序副业月入 5000+ 案例曝光",
+        desc: "基于美团 Hermes 框架开发的 AI Agent 小程序在微信生态中实现商业变现，通过流量主和私域运营获得稳定收入。",
+        details: ["Hermes Agent 小程序自动接单", "AI 客服+智能推荐双引擎", "流量主广告+私域转化双变现", "典型案例：副业月入 5000+"],
+        tags: ["美团", "Hermes", "小程序", "副业", "变现"]
+      },
+      {
+        id: 12, product: "DAA", vendor: "百度", version: "日常活跃 Agent",
+        date: "2026-06-05", type: "announcement",
+        title: "百度李彦宏提出 DAA（Daily Active Agents）新概念",
+        desc: "百度 CEO 李彦宏在 2026 全球 AI 大会上提出 DAA（Daily Active Agents）指标，认为 Agent 日活将取代 DAU 成为 AI 时代核心指标。",
+        details: ["DAA = Daily Active Agents 定义", "百度智能体平台日活突破 1000 万", "Agent 即服务的商业模式探索", "与 DAU 的对比分析框架"],
+        tags: ["百度", "DAA", "李彦宏", "智能体", "Agent日活"]
+      },
+      {
+        id: 13, product: "OpenClaw", vendor: "OpenClaw", version: "Windows 原生",
+        date: "2026-06-06", type: "new-feature",
+        title: "OpenClaw Windows 原生版正式发布，支持 Multi-Agent",
+        desc: "OpenClaw 推出 Windows 原生客户端，支持 Multi-Agent 并行编排、本地模型调用和系统级自动化，无需 WSL 即可运行。",
+        details: ["Windows 原生 EXE 安装包", "Multi-Agent 并行编排可视化", "本地 Ollama 模型一键接入", "系统级自动化（文件/浏览器/Office）"],
+        tags: ["OpenClaw", "Windows", "Multi-Agent", "本地模型"]
+      },
+      {
+        id: 14, product: "Gemini", vendor: "Google", version: "月活数据",
+        date: "2026-06-04", type: "announcement",
+        title: "Google 宣布 Gemini 全球月活突破 5 亿",
+        desc: "Gemini 全球月活跃用户突破 5 亿，成为仅次于 ChatGPT 的第二大 AI 助手。Android 端预装是增长主引擎。",
+        details: ["月活 5 亿，日活 1.2 亿", "Android 15 预装贡献 60% 增长", "Workspace 企业用户突破 1000 万", "印度/东南亚新兴市场增长最快"],
+        tags: ["Google", "Gemini", "月活", "Android", "Workspace"]
+      },
+      {
+        id: 15, product: "豆包", vendor: "字节跳动", version: "收费模式",
+        date: "2026-06-05", type: "breaking",
+        title: "字节豆包宣布专业版收费，基础版仍免费",
+        desc: "字节跳动宣布豆包 AI 专业版开始收费，月费 19.9 元。基础版保留免费但限制每日对话次数。国产大模型商业化加速。",
+        details: ["专业版月费 19.9 元", "基础版每日 50 轮限制", "Pro 版支持 GPT-4 级模型", "企业版按需定价"],
+        tags: ["字节", "豆包", "收费", "国产大模型", "商业化"]
+      },
+      {
+        id: 16, product: "Anthropic", vendor: "Anthropic", version: "IPO",
+        date: "2026-06-05", type: "announcement",
+        title: "Anthropic 宣布 IPO 计划，估值目标 600 亿美元",
+        desc: "Anthropic 正式提交 IPO 申请，目标估值 600 亿美元。若成功将成为继 OpenAI 之后第二家上市的 AI 独角兽。",
+        details: ["IPO 申请已提交 SEC", "目标估值 600 亿美元", "2025 年营收 8.5 亿美元", "Amazon 持股 15% 不变", "预计 2026 Q3 上市"],
+        tags: ["Anthropic", "IPO", "上市", "Claude", "Amazon"]
+      },
+      {
+        id: 17, product: "OpenClaw", vendor: "OpenClaw", version: "智能家居",
+        date: "2026-06-10", type: "new-feature",
+        title: "OpenClaw 进军智能家居赛道，光亚展发布全屋智能方案",
+        desc: "OpenClaw 在 2026 广州光亚展发布全屋智能 Agent 方案，支持灯光/窗帘/空调/安防的统一语音控制和场景编排。",
+        details: ["全屋智能 Agent 方案", "支持 200+ 品牌设备接入", "语音+手势+App 三控", "场景编排：回家/离家/睡眠模式", "光亚展现场 Demo 获最佳创新奖"],
+        tags: ["OpenClaw", "智能家居", "全屋智能", "光亚展", "IoT"]
+      },
+      {
+        id: 18, product: "AI Agent", vendor: "行业", version: "商业化",
+        date: "2026-06-07", type: "announcement",
+        title: "AI Agent 企业级规模化落地，2026 预计千亿产值",
+        desc: "据《中国 AI Agent 产业发展报告 2026》，AI Agent 企业级应用市场规模预计 2026 年突破 1000 亿元，客服、编程、营销三大场景占比最高。",
+        details: ["2026 年市场规模预计 1000 亿元", "客服 Agent 占比 35%", "编程 Agent 占比 28%", "营销 Agent 占比 20%", "金融/医疗/教育快速跟进"],
+        tags: ["AI Agent", "企业级", "商业化", "市场规模", "产业报告"]
+      },
+      {
+        id: 19, product: "OpenClaw", vendor: "OpenClaw", version: "Workboard",
+        date: "2026-06-15", type: "improvement",
+        title: "OpenClaw Workboard 多智能体协同编排功能升级",
+        desc: "Workboard 是 OpenClaw 的可视化多 Agent 编排工具，新版本支持条件分支、循环、定时触发和跨 Agent 状态共享。",
+        details: ["可视化流程编辑器升级", "条件分支和循环节点", "定时触发器（Cron 表达式支持）", "跨 Agent 状态共享机制"],
+        tags: ["OpenClaw", "Workboard", "Multi-Agent", "可视化编排"]
+      }
+    ];
+
+    let currentType = 'all';
+    let currentVendor = 'all';
+    let currentTag = null;
+    let searchQuery = '';
+
+    function init() {
+      updateStats();
+      renderVendors();
+      renderTags();
+      renderEntries();
+      bindEvents();
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent = changelogData.length;
+      const thisMonth = changelogData.filter(e => e.date.startsWith('2026-06')).length;
+      document.getElementById('stat-this-month').textContent = thisMonth;
+      const vendors = new Set(changelogData.map(e => e.vendor));
+      document.getElementById('stat-vendors').textContent = vendors.size;
+    }
+
+    function renderVendors() {
+      const counts = {};
+      changelogData.forEach(e => { counts[e.vendor] = (counts[e.vendor] || 0) + 1; });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const html = [`<div class="vendor-item ${currentVendor==='all'?'active':''}" data-vendor="all">全部 <span class="vendor-count">${changelogData.length}</span></div>`];
+      sorted.forEach(([v, c]) => {
+        html.push(`<div class="vendor-item ${currentVendor===v?'active':''}" data-vendor="${v}">${v} <span class="vendor-count">${c}</span></div>`);
+      });
+      document.getElementById('vendorList').innerHTML = html.join('');
+      document.querySelectorAll('.vendor-item').forEach(el => {
+        el.addEventListener('click', () => { currentVendor = el.dataset.vendor; renderVendors(); renderEntries(); });
+      });
+    }
+
+    function renderTags() {
+      const counts = {};
+      changelogData.forEach(e => e.tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; }));
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+      const html = sorted.map(([t, c]) => `<span class="tag-chip ${currentTag===t?'active':''}" data-tag="${t}">${t} (${c})</span>`).join('');
+      document.getElementById('tagCloud').innerHTML = html;
+      document.querySelectorAll('.tag-chip').forEach(el => {
+        el.addEventListener('click', () => {
+          currentTag = currentTag === el.dataset.tag ? null : el.dataset.tag;
+          renderTags(); renderEntries();
+        });
+      });
+    }
+
+    function getFilteredData() {
+      return changelogData.filter(e => {
+        if (currentType !== 'all' && e.type !== currentType) return false;
+        if (currentVendor !== 'all' && e.vendor !== currentVendor) return false;
+        if (currentTag && !e.tags.includes(currentTag)) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return e.title.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q) ||
+                 e.product.toLowerCase().includes(q) || e.tags.some(t => t.toLowerCase().includes(q));
+        }
+        return true;
+      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderEntries() {
+      const data = getFilteredData();
+      const container = document.getElementById('content');
+      if (data.length === 0) {
+        container.innerHTML = '<div class="no-results"><h3>🔍 未找到结果</h3><p>尝试调整筛选条件或搜索词</p></div>';
+        return;
+      }
+      if (currentView === 'timeline') {
+        container.innerHTML = '<div class="timeline">' + data.map(e => renderEntry(e)).join('') + '</div>';
+      } else {
+        container.innerHTML = '<div class="cards-grid">' + data.map(e => renderCard(e)).join('') + '</div>';
+      }
+      document.querySelectorAll('.entry-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const detail = card.querySelector('.entry-detail');
+          if (detail) detail.classList.toggle('show');
+        });
+      });
+    }
+
+    function renderEntry(e) {
+      return `
+        <div class="entry">
+          <div class="entry-dot ${e.type}"></div>
+          <div class="entry-card" data-id="${e.id}">
+            <div class="entry-header">
+              <div class="entry-meta">
+                <span class="entry-product"><span class="product-icon">${e.vendor[0]}</span>${e.product}</span>
+                <span class="entry-version">${e.version}</span>
+                <span class="entry-type type-${e.type}">${typeLabel(e.type)}</span>
+              </div>
+              <span class="entry-date">${e.date}</span>
+            </div>
+            <div class="entry-title">${e.title}</div>
+            <div class="entry-desc">${e.desc}</div>
+            <div class="entry-tags">${e.tags.map(t => `<span class="entry-tag">${t}</span>`).join('')}</div>
+            <div class="entry-detail">
+              <ul class="detail-list">${e.details.map(d => `<li>${d}</li>`).join('')}</ul>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderCard(e) {
+      return `
+        <div class="card-item entry-card" data-id="${e.id}">
+          <div class="entry-header">
+            <div class="entry-meta">
+              <span class="entry-product"><span class="product-icon">${e.vendor[0]}</span>${e.product}</span>
+              <span class="entry-version">${e.version}</span>
+            </div>
+            <span class="entry-date">${e.date}</span>
+          </div>
+          <span class="entry-type type-${e.type}">${typeLabel(e.type)}</span>
+          <div class="entry-title" style="margin-top:8px">${e.title}</div>
+          <div class="entry-desc">${e.desc}</div>
+          <div class="entry-tags">${e.tags.slice(0,4).map(t => `<span class="entry-tag">${t}</span>`).join('')}</div>
+          <div class="entry-detail">
+            <ul class="detail-list">${e.details.map(d => `<li>${d}</li>`).join('')}</ul>
+          </div>
+        </div>`;
+    }
+
+    function typeLabel(type) {
+      const labels = { 'new-feature': '新功能', 'improvement': '改进', 'bugfix': '修复', 'security': '安全', 'announcement': '发布', 'breaking': 'Breaking' };
+      return labels[type] || type;
+    }
+
+    function bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderEntries();
+      });
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentType = btn.dataset.type;
+          renderEntries();
+        });
+      });
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentView = btn.dataset.view;
+          renderEntries();
+        });
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
