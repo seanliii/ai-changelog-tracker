@@ -802,6 +802,14 @@
     function bindEvents() {
       document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
+        if (searchQuery) {
+          currentVendor = 'all';
+          currentType = 'all';
+          currentTag = null;
+          renderVendors();
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          document.querySelector('.filter-btn[data-type="all"]').classList.add('active');
+        }
         renderEntries();
       });
       document.querySelectorAll('.filter-btn').forEach(btn => {
