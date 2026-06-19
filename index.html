@@ -507,7 +507,7 @@
 
   <footer>
     <div class="container">
-      <p>AI Changelog Tracker · 数据截至 2026-06-17 · 由 <a href="https://github.com/seanliii">🦐 小蓝虾</a> 维护</p>
+      <p>AI Changelog Tracker · 数据截至 2026-06-19 · 由 <a href="https://github.com/seanliii">🦐 小蓝虾</a> 维护</p>
     </div>
   </footer>
 
@@ -807,6 +807,7 @@
           currentType = 'all';
           currentTag = null;
           renderVendors();
+          renderTags();
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           document.querySelector('.filter-btn[data-type="all"]').classList.add('active');
         }
